@@ -1,0 +1,25 @@
+[project]
+name = "prompt-chaining"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dotenv>=0.9.9",
+    "langchain>=0.3.27",
+    "langchain-anthropic>=0.3.19",
+]
+
+[dependency-groups]
+dev = []
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]  # Enable error, pyflakes, and import sorting
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
