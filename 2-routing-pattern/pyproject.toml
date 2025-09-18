@@ -1,0 +1,16 @@
+[project]
+name = "2-routing-pattern"
+version = "0.1.0"
+description = "Two examples of routing patterns in Python"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "deprecated>=1.2.18",
+    "dotenv>=0.9.9",
+    "google-adk>=1.14.0",
+    "google-cloud-aiplatform>=1.112.0",
+    "langchain>=0.3.27",
+    "langchain-google-genai>=2.1.10",
+    "langgraph>=0.6.7",
+    "pydantic>=2.11.7",
+]
