@@ -1,10 +1,10 @@
 import argparse
 import asyncio
-import asyncio
 import logging
 import os
 from typing import Optional
 
+from common import add_verbose_argument, setup_logging
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_core.output_parsers import StrOutputParser
@@ -133,7 +133,7 @@ async def run_parallel_chain(topic: str) -> None:
         # The input to `ainvoke` is the single topic string,
         # then passed to each runnable in the `map_chain`.
         response = await full_parallel_chain.ainvoke(topic)
-        logger.info(f"---Synthesized final response--- \n\n{response}")
+        logger.notice(f"---Synthesized final response--- \n\n{response}")
     except Exception as e:
         logger.error(f"Error occurred during chain execution: {e}")
 
@@ -144,24 +144,18 @@ async def main():
     Parses command-line arguments and kicks off the processing chain.
     """
     parser = argparse.ArgumentParser(description="Parallelization demo with LangChain")
-    parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Enable verbose logging of LLM outputs",
-    )
+    add_verbose_argument(parser)
     parser.add_argument(
         "--topic",
+        "-t",
         type=str,
         default="The history and future of space exploration",
         help="The topic to be processed by the LangChain chains.",
     )
     args = parser.parse_args()
 
-    # Configure logging based on verbose flag
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG, format="%(message)s\n")
-    else:
-        logging.basicConfig(level=logging.INFO, format="%(message)s\n")
+    # Configure logging using the shared function
+    setup_logging(args.verbose)
 
     await run_parallel_chain(args.topic)
 

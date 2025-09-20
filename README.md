@@ -2,21 +2,63 @@
 
 Code samples from learning how to create and orchestrate AI agents from [Agentic Design Patterns](https://www.amazon.com/Agentic-Design-Patterns-Hands-Intelligent/dp/3032014018/).
 
-## Setup
+This project contains the code samples from the book, with a key addition: a shared `common` library for standardized, colorful logging across all sub-projects.
 
-1. Install Python. `asdf install python 3.13.5`
-1. Install uv. `curl -LsSf https://astral.sh/uv/install.sh | sh`
+## Project Structure
 
-## Work on a project
+- **Numbered Folders (`1-prompt-chaining`, etc.):** Each folder is a standalone `uv` project corresponding to a chapter or pattern from the book.
+- **`common/`:** A shared Python library that provides common utilities, primarily a sophisticated logging setup powered by the `rich` library.
 
-Each folder is it's own isolated `uv` project relating to a single chapter or pattern.
+## Getting Started
 
-1. From the root directory, `cd <project_name>` then `uv sync` to install the project dependencies.
-2. `uv run main.py` (or similar) to run the project. Some scripts have `--verbose` flags to dump more LLM internals.
+1.  **Install Prerequisites:**
+    - Install Python 3.13+. (`asdf install python 3.13.5`)
+    - Install `uv`. (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
 
-I've used `logging` more that `print` statements but other than that there are very few differences between my code and what's in the book.
-I did use an LLM to help write the `README.md` in each folder so that I understand how things are working if they were unclear to me. Again, your mileage might vary.
+2.  **Work on a Sub-Project:**
+    - Navigate to a project directory: `cd <project_name>`
+    - Install its dependencies: `uv sync`
 
+3.  **Enable Shared Logging (Recommended):**
+    - To use the shared logging library, link it to the project: `uv add ../common --editable`
+    - This only needs to be done once per sub-project.
+
+4.  **Run the Code:**
+    - `uv run main.py` (or similar).
+    - Use the `-v` or `-vv` flags to increase log verbosity.
+
+## Common Logging Library
+
+The `common` library provides standardized logging with colored output.
+
+### Usage
+
+After setting it up (step 3 above), modify your main script to use the logging helpers. There are three main levels:
+
+- `logger.notice()`: For essential user-facing messages. **Always visible by default.**
+- `logger.info()`: For detailed diagnostic messages. Visible with `-v`.
+- `logger.debug()`: For verbose debugging messages. Visible with `-vv`.
+
+```python
+import argparse
+import logging
+from common import add_verbose_argument, setup_logging
+
+logger = logging.getLogger(__name__)
+
+def main():
+    parser = argparse.ArgumentParser()
+    add_verbose_argument(parser)
+    args = parser.parse_args()
+    setup_logging(args.verbose)
+
+    logger.notice("This message is always visible to the user.")
+    logger.info("This is a detailed message for when things go right.")
+    logger.debug("This is a verbose message for debugging.")
+
+if __name__ == "__main__":
+    main()
+```
 
 ## Optional Tooling
 
