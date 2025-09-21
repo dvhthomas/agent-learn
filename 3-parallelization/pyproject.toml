@@ -1,0 +1,16 @@
+[project]
+name = "3-parallelization"
+version = "0.1.0"
+description = "Sample parallelization agents"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "common",
+    "dotenv>=0.9.9",
+    "google-adk>=1.14.1",
+    "langchain-anthropic>=0.3.20",
+    "langchain-core>=0.3.76",
+]
+
+[tool.uv.sources]
+common = { path = "../common", editable = true }
