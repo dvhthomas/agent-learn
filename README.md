@@ -2,7 +2,7 @@
 
 Code samples from learning how to create and orchestrate AI agents from [Agentic Design Patterns](https://www.amazon.com/Agentic-Design-Patterns-Hands-Intelligent/dp/3032014018/).
 
-This project contains the code samples from the book, with a key addition: a shared `common` library for standardized, colorful logging across all sub-projects.
+This project contains the code samples from the book (modified by me and various coding agents!) with a key addition: a shared `common` library for standardized logging across all sub-projects.
 
 ## Project Structure
 
