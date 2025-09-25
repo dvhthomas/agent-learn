@@ -85,6 +85,8 @@ nest_asyncio.apply()  # Patch applied globally
 
 **Caution**: This breaks asyncio's design principles and can cause task starvation if nested runs take too long, as outer tasks won't get execution time.
 
+
+
 ### Goofs
 
 The script I wrote was originally called `langchain.py`.
@@ -93,3 +95,78 @@ the name conflicted with the `langchain` package :facepalm:
 The file was renamed to `tool_agent.py` and the problem was solved.
 
 I also forgot to annotate the `def search_information` function with the `@tool` decorator.
+
+## CrewAI
+
+The CrewAI SDK was used for the first time in this project.
+
+### CrewAI Execution Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Script
+    participant Crew
+    participant Agent
+    participant Task
+    participant Tool
+
+    User->>Script: Execute crewai-tools.py
+    Script->>Agent: Create financial_analyst_agent with generic stock tools
+    Script->>Task: Create analyze_aapl_task with specific request for AAPL
+    Script->>Crew: Create crew with agent and task
+    Script->>Crew: kickoff()
+
+    Crew->>Agent: Assign task
+    Agent->>Task: Read task description ("What is AAPL price?")
+    Agent->>Tool: get_stock_price("AAPL")
+    Tool-->>Agent: Return $178.15
+    Agent->>Agent: Format response
+    Agent-->>Crew: "The simulated stock price for AAPL is $178.15"
+    Crew-->>Script: Return result
+    Script-->>User: Display final result
+```
+
+**Key Insight**: The **Task is where the actual user request lives** - it contains the specific instruction to look up Apple (AAPL) stock.
+The **Agent is generic** - it has access to a stock price tool but doesn't know which stock to look up until it receives the Task.
+This separation allows you to reuse the same Agent with different Tasks for different stocks or analyses.
+
+### Agent or Tool or Task
+
+In CrewAI, the choice between defining a subagent vs a task depends on the complexity and autonomy needed.
+
+Here's the complete decision framework for **Agent vs Tool vs Task**:
+
+## **Use a `@tool` when:**
+- **Single, reusable function** that agents can call on-demand
+- **Stateless operations** (API calls, calculations, file I/O)
+- You want **agent autonomy** in deciding when/how to use it
+- **Composable functionality** that can be chained with other tools
+- **Pure functions** with clear inputs/outputs
+
+*Examples: `get_weather()`, `send_email()`, `calculate_distance()`*
+
+## **Use a task when:**
+- **Predefined workflow steps** in a sequential pipeline
+- **Orchestrating multiple tools/agents** in a specific order
+- **Business logic** that shouldn't change based on agent reasoning
+- **Error handling and retries** for critical operations
+- **Human-in-the-loop** approval steps
+
+*Examples: "Step 1: Validate input → Step 2: Process → Step 3: Send notification"*
+
+## **Use an agent when:**
+- **Autonomous decision-making** with reasoning loops
+- **Dynamic planning** where the approach isn't predetermined
+- **Specialized expertise** requiring different prompts/models
+- **Complex multi-step problems** requiring adaptive strategies
+- **Maintaining context/memory** across interactions
+
+*Examples: Research agent, code review agent, customer service agent*
+
+## **Common Patterns:**
+- **Tools within agents**: Agent uses multiple tools to solve problems
+- **Tasks orchestrating agents**: Workflow that routes between specialized agents
+- **Agents using agents**: Hierarchical systems with manager/worker agents
+
+**Rule of thumb**: Start with tools, use tasks for orchestration, reserve agents for complex reasoning that needs autonomy.
