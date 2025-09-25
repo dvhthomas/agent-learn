@@ -111,12 +111,13 @@ sequenceDiagram
     participant Task
     participant Tool
 
+    Note over User, Tool: Success Case (AAPL)
     User->>Script: Execute crewai-tools.py
     Script->>Agent: Create financial_analyst_agent with generic stock tools
-    Script->>Task: Create analyze_aapl_task with specific request for AAPL
+    Script->>Task: Create task with specific request for AAPL
     Script->>Crew: Create crew with agent and task
     Script->>Crew: kickoff()
-
+    
     Crew->>Agent: Assign task
     Agent->>Task: Read task description ("What is AAPL price?")
     Agent->>Tool: get_stock_price("AAPL")
@@ -125,11 +126,26 @@ sequenceDiagram
     Agent-->>Crew: "The simulated stock price for AAPL is $178.15"
     Crew-->>Script: Return result
     Script-->>User: Display final result
+
+    Note over User, Tool: Failure Case (AMZN)
+    Script->>Task: Create task with specific request for AMZN
+    Script->>Crew: Create new crew with agent and task
+    Script->>Crew: kickoff()
+    
+    Crew->>Agent: Assign task
+    Agent->>Task: Read task description ("What is AMZN price?")
+    Agent->>Tool: get_stock_price("AMZN")
+    Tool->>Tool: Check simulated_prices dict
+    Tool-->>Agent: ValueError: "Simulated price for ticker 'AMZN' not found"
+    Agent->>Agent: Handle exception and format error response
+    Agent-->>Crew: "Unable to retrieve the price for AMZN"
+    Crew-->>Script: Return error result
+    Script-->>User: Display error message
 ```
 
-**Key Insight**: The **Task is where the actual user request lives** - it contains the specific instruction to look up Apple (AAPL) stock.
-The **Agent is generic** - it has access to a stock price tool but doesn't know which stock to look up until it receives the Task.
-This separation allows you to reuse the same Agent with different Tasks for different stocks or analyses.
+**Key Insight**: The **Task is where the actual user request lives** - it contains the specific instruction to look up a particular stock ticker. The **Agent is generic** - it has access to a stock price tool but doesn't know which stock to look up until it receives the Task. This separation allows you to reuse the same Agent with different Tasks for different stocks or analyses.
+
+**Error Handling**: When the tool raises a `ValueError` for an unknown ticker (like AMZN), the agent is designed to catch the exception and provide a clear error message instead of crashing, demonstrating robust error handling in agent workflows.
 
 ### Agent or Tool or Task
 
@@ -170,3 +186,110 @@ Here's the complete decision framework for **Agent vs Tool vs Task**:
 - **Agents using agents**: Hierarchical systems with manager/worker agents
 
 **Rule of thumb**: Start with tools, use tasks for orchestration, reserve agents for complex reasoning that needs autonomy.
+
+### Handling Exceptions Improves Outcomes
+
+The book was insistent that `return ValueError("...")` should be used to handle situations where the LLM comes across a failure case.
+When running `crewai-tools.py` using a stock ticker that it doesn't know about (`AMZN`), it was easy to see why this is better.
+Here's a session:
+
+```sh
+Tool Arguments: {'ticker': {'description': None, 'type': 'str'}}
+Tool Description:
+Get the current stock price for a given ticker symbol.
+Raises a ValueError if the ticker is not found.
+
+
+╭──────────────────────────── 🔧 Agent Tool Execution ─────────────────────────────╮
+│                                                                                  │
+│  Agent: Senior Financial Analyst                                                 │
+│                                                                                  │
+│  Thought: Thought: I need to look up the current simulated stock price for AMZN  │
+│  using the Stock Price Lookup Tool.                                              │
+│                                                                                  │
+│  Using Tool: Stock Price Lookup Tool                                             │
+│                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────╯
+╭─────────────────────────────────── Tool Input ───────────────────────────────────╮
+│                                                                                  │
+│  "{\"ticker\": \"AMZN\"}"                                                        │
+│                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────╯
+╭────────────────────────────────── Tool Output ───────────────────────────────────╮
+│                                                                                  │
+│                                                                                  │
+│  I encountered an error while trying to use the tool. This was the error:        │
+│  Simulated price for ticker 'AMZN' not found.                                    │
+│   Tool Stock Price Lookup Tool accepts these inputs: Tool Name: Stock Price      │
+│  Lookup Tool                                                                     │
+│  Tool Arguments: {'ticker': {'description': None, 'type': 'str'}}                │
+│  Tool Description:                                                               │
+│  Get the current stock price for a given ticker symbol.                          │
+│  Raises a ValueError if the ticker is not found.                                 │
+│  .                                                                               │
+│  Moving on then. I MUST either use a tool (use one at time) OR give my best      │
+│  final answer not both at the same time. When responding, I must use the         │
+│  following format:                                                               │
+│                                                                                  │
+│  ```                                                                             │
+│  Thought: you should always think about what to do                               │
+│  Action: the action to take, should be one of [Stock Price Lookup Tool]          │
+│  Action Input: the input to the action, dictionary enclosed in curly braces      │
+│  Observation: the result of the action                                           │
+│  ```                                                                             │
+│  This Thought/Action/Action Input/Result can repeat N times. Once I know the     │
+│  final answer, I must return the following format:                               │
+│                                                                                  │
+│  ```                                                                             │
+│  Thought: I now can give a great answer                                          │
+│  Final Answer: Your final answer must be the great and the most complete as      │
+│  possible, it must be outcome described                                          │
+│                                                                                  │
+│  ```                                                                             │
+│                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────╯
+
+🚀 Crew: crew
+└── 📋 Task: 8adae02e-fddd-48b8-9847-fcf65227c607
+    Status: Executing Task...
+    └── 🔧 Failed Stock Price Lookup Tool (6)
+╭───────────────────────────── ✅ Agent Final Answer ──────────────────────────────╮
+│                                                                                  │
+│  Agent: Senior Financial Analyst                                                 │
+│                                                                                  │
+│  Final Answer:                                                                   │
+│  I was unable to retrieve the price for AMZN as the simulated price for ticker   │
+│  'AMZN' was not found in the system.                                             │
+│                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────╯
+
+🚀 Crew: crew
+└── 📋 Task: 8adae02e-fddd-48b8-9847-fcf65227c607
+    Assigned to: Senior Financial Analyst
+    Status: ✅ Completed
+    └── 🔧 Failed Stock Price Lookup Tool (6)
+╭──────────────────────────────── Task Completion ─────────────────────────────────╮
+│                                                                                  │
+│  Task Completed                                                                  │
+│  Name: 8adae02e-fddd-48b8-9847-fcf65227c607                                      │
+│  Agent: Senior Financial Analyst                                                 │
+│  Tool Args:                                                                      │
+│                                                                                  │
+│                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────╯
+
+╭──────────────────────────────── Crew Completion ─────────────────────────────────╮
+│                                                                                  │
+│  Crew Execution Completed                                                        │
+│  Name: crew                                                                      │
+│  ID: d20c16dd-acbf-4430-8038-3f0c9313fd94                                        │
+│  Tool Args:                                                                      │
+│  Final Output: I was unable to retrieve the price for AMZN as the simulated      │
+│  price for ticker 'AMZN' was not found in the system.                            │
+│                                                                                  │
+│                                                                                  │
+╰──────────────────────────────────────────────────────────────────────────────────╯
+
+------------------------------
+Result for AMZN: I was unable to retrieve the price for AMZN as the simulated price for ticker 'AMZN' was not found in the system.
+```

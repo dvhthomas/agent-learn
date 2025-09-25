@@ -54,47 +54,50 @@ financial_analyst_agent = Agent(
     allow_delegation=False
 )
 
-# --- 3. Refined Task: Clearer Instructions and Error Handling ---
-# The task description is more specific and guides the agent on how to react
-# to both successful data  retrieval and potential errors.
-analyze_aapl_task = Task(
-    description=(
-        "What is the current simulated stock price for Apple (ticker: AAPL)?"
-        f"Use the '{STOCK_PRICE_TOOL}' to find it."
-        "If the ticker is not found, you must report that you were unable to retrieve the price."
-    ),
-    expected_output=(
-        "A single, clear sentence stating the simulated stock price for AAPL."
-        "For example: 'The stimulated stock price for AAPL is $178.15.'"
-        "If the price cannont be found, state that clearly."
+# --- 3. Dynamic Task Creation Function ---
+def run_stock_analysis(ticker):
+    """Create and run a crew to analyze a specific stock ticker"""
+    task = Task(
+        description=(
+            f"What is the current simulated stock price for {ticker.upper()} (ticker: {ticker.upper()})?"
+            f"Use the '{STOCK_PRICE_TOOL}' to find it."
+            "If the ticker is not found, you must report that you were unable to retrieve the price."
+        ),
+        expected_output=(
+            f"A single, clear sentence stating the simulated stock price for {ticker.upper()}."
+            f"For example: 'The simulated stock price for {ticker.upper()} is $178.15.'"
+            "If the price cannot be found, state that clearly."
+        ),
+        agent=financial_analyst_agent,
+    )
 
-    ),
-    agent=financial_analyst_agent,
-)
+    crew = Crew(
+        agents=[financial_analyst_agent],
+        tasks=[task],
+        manager_llm=llm,
+        verbose=True # Set to False for less detailed production logs.
+    )
 
-# -- 4. Formulate the Crew ---
-# The crew orchestrates how the agent and task work together.
-financial_crew = Crew(
-    agents=[financial_analyst_agent],
-    tasks=[analyze_aapl_task],
-    manager_llm=llm,
-    verbose=True #Set to False for less detailed production logs.
-)
+    return crew.kickoff()
 
 # -- 5. Run the Crew within a Main execution block ---
 def main():
-    """Main function to run the crew """
+    """Main function to run stock analysis for multiple tickers"""
     if not os.environ.get("ANTHROPIC_API_KEY") or not os.environ.get("ANTHROPIC_MODEL"):
         logger.warning("ANTHROPIC_API_KEY or ANTHROPIC_MODEL environment variable is not set. Try adding a .env file.")
         print("ERROR: ANTHROPIC_API_KEY or ANTHROPIC_MODEL environment variable is not set.", file=sys.stderr)
         return
 
-    print("\n## Starting the Financial Crew")
-    print("-"*20)
-    result = financial_crew.kickoff()
-    print("-"*20)
-    print("Crew execution finished")
-    print("\nFinal Result:\n", result)
+    # Analyze multiple stock tickers
+    tickers = ["AAPL", "GOOGL", "MSFT", "AMZN"]
+
+    for ticker in tickers:
+        print(f"\n## Analyzing {ticker}")
+        print("-"*30)
+        result = run_stock_analysis(ticker)
+        print("-"*30)
+        print(f"Result for {ticker}: {result}")
+        print()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Tool use example using CrewAI")
