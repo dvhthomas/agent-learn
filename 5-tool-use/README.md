@@ -117,7 +117,7 @@ sequenceDiagram
     Script->>Task: Create task with specific request for AAPL
     Script->>Crew: Create crew with agent and task
     Script->>Crew: kickoff()
-    
+
     Crew->>Agent: Assign task
     Agent->>Task: Read task description ("What is AAPL price?")
     Agent->>Tool: get_stock_price("AAPL")
@@ -131,7 +131,7 @@ sequenceDiagram
     Script->>Task: Create task with specific request for AMZN
     Script->>Crew: Create new crew with agent and task
     Script->>Crew: kickoff()
-    
+
     Crew->>Agent: Assign task
     Agent->>Task: Read task description ("What is AMZN price?")
     Agent->>Tool: get_stock_price("AMZN")
@@ -293,3 +293,23 @@ Raises a ValueError if the ticker is not found.
 ------------------------------
 Result for AMZN: I was unable to retrieve the price for AMZN as the simulated price for ticker 'AMZN' was not found in the system.
 ```
+
+## Google ADK
+
+Not being familiar with the SDK usage for this type of query, I went step by step.
+`query` is the string that the user typed for the Google search they want to perform.
+
+```py
+content = types.Content(role='user',parts=[types.Part(text=query)])
+```
+
+And the breakdown:
+
+> This line creates a `Content` object that represents a user message in Google's Gemini API format.
+>
+> Breaking it down:
+> - `types.Content()` - Creates a content object that holds a message
+> - `role='user'` - Specifies this message comes from the user (as opposed to the AI assistant)
+> - `parts=[types.Part(text=query)]` - The message content, where `query` is wrapped in a `Part` object that contains text
+>
+>This is the standard way to format user input when sending requests to Google's Gemini models - each message needs to be structured as a `Content` object with a role and parts containing the actual text.

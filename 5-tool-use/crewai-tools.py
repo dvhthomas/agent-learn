@@ -10,10 +10,10 @@ from dotenv import load_dotenv
 from common import add_verbose_argument, setup_logging
 
 logger: logging.Logger = logging.getLogger(name=__name__)
-load_dotenv()
+_ = load_dotenv()
 STOCK_PRICE_TOOL : str = "Stock Price Lookup Tool"
 
-@tool(STOCK_PRICE_TOOL)
+@tool(STOCK_PRICE_TOOL)  # type: ignore
 def get_stock_price(ticker: str) -> float:
     """
     Get the current stock price for a given ticker symbol.

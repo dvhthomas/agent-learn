@@ -18,7 +18,7 @@ logging.Logger.notice = notice
 
 def add_verbose_argument(parser: argparse.ArgumentParser):
     """Adds a verbose argument to the argument parser."""
-    parser.add_argument(
+    _ = parser.add_argument(
         "-v",
         "--verbose",
         action="count",
