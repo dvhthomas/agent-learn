@@ -23,3 +23,7 @@ select = ["I"]  # Enable import sorting rules
 [tool.ruff.lint.isort]
 # Optional: configure import sorting behavior
 known-first-party = ["common"]
+
+[tool.basedpyright]
+reportMissingTypeStubs = "none"  # or "warning" instead of "error"
+reportUntypedFunctionDecorator = false

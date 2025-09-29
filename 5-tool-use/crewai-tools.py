@@ -13,7 +13,7 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 _ = load_dotenv()
 STOCK_PRICE_TOOL : str = "Stock Price Lookup Tool"
 
-@tool(STOCK_PRICE_TOOL)  # type: ignore
+@tool(STOCK_PRICE_TOOL)
 def get_stock_price(ticker: str) -> float:
     """
     Get the current stock price for a given ticker symbol.
