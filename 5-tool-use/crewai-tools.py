@@ -55,7 +55,7 @@ financial_analyst_agent = Agent(
 )
 
 # --- 3. Dynamic Task Creation Function ---
-def run_stock_analysis(ticker):
+def run_stock_analysis(ticker: str):
     """Create and run a crew to analyze a specific stock ticker"""
     task = Task(
         description=(
