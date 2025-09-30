@@ -13,7 +13,7 @@ logger: logging.Logger = logging.getLogger(name=__name__)
 _ = load_dotenv()
 STOCK_PRICE_TOOL : str = "Stock Price Lookup Tool"
 
-@tool(STOCK_PRICE_TOOL)  # type: ignore
+@tool(STOCK_PRICE_TOOL)
 def get_stock_price(ticker: str) -> float:
     """
     Get the current stock price for a given ticker symbol.
@@ -55,7 +55,7 @@ financial_analyst_agent = Agent(
 )
 
 # --- 3. Dynamic Task Creation Function ---
-def run_stock_analysis(ticker):
+def run_stock_analysis(ticker: str):
     """Create and run a crew to analyze a specific stock ticker"""
     task = Task(
         description=(
