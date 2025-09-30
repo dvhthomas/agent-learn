@@ -6,8 +6,8 @@ import logging
 from common import add_verbose_argument, setup_logging
 from dotenv import load_dotenv
 
-logger = logging.getLogger(__name__)
-load_dotenv()
+logger : logging.Logger = logging.getLogger(__name__)
+_ = load_dotenv()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -17,4 +17,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     setup_logging(args.verbose)
 
-    logging.info("Starting scripts...")
+    logger.info("Starting scripts...")
