@@ -3,6 +3,7 @@
 ## Development Environment Tips
 
 - Each top level directory is a separate Python project created with the `uv` tool.
+- Most scripts have a verbose flag where more `v`s increase the verbosity level. So use `-vv` for more verbose output.
 - Use the `uv add` and `uv remove` commands to manage dependencies. Do not use `pip` or `poetry` to manage dependencies.
 - Project scripts should be run with `uv run <script_name>`.
 
