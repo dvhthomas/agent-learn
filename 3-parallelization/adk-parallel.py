@@ -11,7 +11,7 @@ from google.adk.runners import InMemoryRunner
 from google.adk.tools import google_search
 from google.genai import types
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
 load_dotenv()
 
 # Define state keys as constants to avoid typos
@@ -24,7 +24,7 @@ CARBON_CAPTURE_KEY = "carbon_capture_result"
 
 renewable_energy_agent = LlmAgent(
     name="RenewableEnergyResearcher",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     instruction="""You are an AI Research Assistant specializing in energy.
     Research the latest advancementts in 'renewable energy sources'.
     Use the Google Search tool provided. Summarize your key findings concisely
@@ -36,7 +36,7 @@ renewable_energy_agent = LlmAgent(
 
 electric_vehicle_agent = LlmAgent(
     name="EVResearcher",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     instruction="""You are an AI Research Assistant specializing in transportation.
     Research the latest developments in 'electric vehicle technology'.
     Use the Google Search tool provided. Summarize your key findings concisely
@@ -48,7 +48,7 @@ electric_vehicle_agent = LlmAgent(
 
 carbon_capture_agent = LlmAgent(
     name="CarbonCaptureResearcher",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     instruction="""You are an AI Research Assistant specializing in climate solutions.
    Research the latest advancements in 'carbon capture methods'.
    Use the Google Search tool provided. Summarize your key findings concisely
@@ -72,7 +72,7 @@ parallel_research_agent = ParallelAgent(
 
 synthesis_agent = LlmAgent(
     name="SynthesisAgent",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     instruction=f"""You are an AI Research Assistant responsible for combining research
     findings into a structured report.
 
@@ -189,13 +189,13 @@ async def main():
 
     setup_logging(args.verbose)
 
-    logger.notice("Running research pipeline.")
+    logger.notice("Running research pipeline.")  # type: ignore[attr-defined]
     runner = InMemoryRunner(root_agent)
 
     final_result = await run_pipeline(runner)
 
     if final_result:
-        logger.notice(f"Final synthesized response:\n{final_result}")
+        logger.notice(f"Final synthesized response:\n{final_result}")  # type: ignore[attr-defined]
     else:
         logger.error("No final result received from pipeline.")
 

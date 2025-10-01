@@ -1,19 +1,29 @@
 import argparse
 import logging
+from typing import Any, Protocol
 
 from rich.logging import RichHandler
+
+
+# Type protocol for Logger with notice method
+class LoggerProtocol(Protocol):
+    """Protocol for Logger with custom notice method."""
+
+    def notice(self, message: str, *args: Any, **kws: Any) -> None:
+        """Log a notice level message."""
+        ...
 
 # Define a custom log level for user-facing messages
 NOTICE_LEVEL_NUM = 25
 logging.addLevelName(NOTICE_LEVEL_NUM, "NOTICE")
 
 
-def notice(self, message, *args, **kws):
+def notice(self: logging.Logger, message: str, *args: Any, **kws: Any) -> None:
     if self.isEnabledFor(NOTICE_LEVEL_NUM):
         self._log(NOTICE_LEVEL_NUM, message, args, **kws)
 
 
-logging.Logger.notice = notice
+logging.Logger.notice = notice  # type: ignore[attr-defined]
 
 
 def add_verbose_argument(parser: argparse.ArgumentParser):

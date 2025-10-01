@@ -10,13 +10,13 @@ from google.genai import types
 import uuid
 import asyncio
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
 load_dotenv()
 
 # The first agent generates an initial draft
 generator = LlmAgent(
     name="draft_writer",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     instruction="Write a comprehensive paragraph about the given subject, including relevant details, dates, and key figures where applicable.",
     description="Generates an initial draft on a given subject",
     output_key="draft_text",  # the output is saved to this state key.
@@ -25,7 +25,7 @@ generator = LlmAgent(
 # The second agent critiques the draft from the first agent.
 reviewer = LlmAgent(
     name="fact_checker",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     description="Reviews a given text for factural accuracy and provides a structured critique.",
     instruction="""
     You are a meticulous fact checker.
@@ -88,18 +88,18 @@ async def run_pipeline(topic: str):
             if event.is_final_response():
                 content = extract_content_text(event)
                 if content:
-                    logger.notice(f"\n=== FINAL RESULT ===\n{content}")
+                    logger.notice(f"\n=== FINAL RESULT ===\n{content}")  # type: ignore[attr-defined]
             else:
                 # Log intermediate results
                 content = extract_content_text(event)
                 if content:
-                    logger.notice(f"\n=== INTERMEDIATE RESULT ===\n{content}")
+                    logger.notice(f"\n=== INTERMEDIATE RESULT ===\n{content}")  # type: ignore[attr-defined]
     finally:
         # Clean up the runner to close HTTP connections
         if hasattr(runner, "close"):
             await runner.close()
 
-    logger.notice("=== PIPELINE COMPLETE ===")
+    logger.notice("=== PIPELINE COMPLETE ===")  # type: ignore[attr-defined]
 
 
 if __name__ == "__main__":
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     setup_logging(args.verbose)
 
-    logger.notice("Running write and review pipeline.")
+    logger.notice("Running write and review pipeline.")  # type: ignore[attr-defined]
 
     # Check if the API key is set
     if not os.getenv("GOOGLE_API_KEY"):
@@ -124,5 +124,5 @@ if __name__ == "__main__":
         )
 
     # Run the pipeline using InMemoryRunner
-    logger.notice(f"=== STARTING PIPELINE EXECUTION with topic: '{args.topic}' ===")
+    logger.notice(f"=== STARTING PIPELINE EXECUTION with topic: '{args.topic}' ===")  # type: ignore[attr-defined]
     asyncio.run(run_pipeline(args.topic))

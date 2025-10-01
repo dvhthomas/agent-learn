@@ -15,7 +15,7 @@ from google.genai import types
 load_dotenv()
 
 # Set up logger
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
 
 # --- Define Tool Functions
 
@@ -36,7 +36,7 @@ def booking_handler(request: str) -> str:
 
 def info_handler(request: str) -> str:
     """
-    Handles booking requests for flights and hotels.
+    Handles general information requests.
     Args:
         request: The user's question.
     Returns:
@@ -60,17 +60,26 @@ def unclear_handler(request: str) -> str:
 booking_tool = FunctionTool(booking_handler)
 info_tool = FunctionTool(info_handler)
 
+
+def get_model_name() -> str:
+    """Get the Google model name from environment variables."""
+    model_name = os.getenv("GOOGLE_MODEL")
+    if not model_name:
+        raise ValueError("GOOGLE_MODEL environment variable is required")
+    return model_name
+
+
 # Define specialized sub-agents equipped with their respective tools
 booking_agent = Agent(
     name="Booker",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=get_model_name(),
     description="A specialized agent that handles all flight and hotel booking requests by calling the booking tool.",
     tools=[booking_tool],
 )
 
 info_agent = Agent(
     name="Info",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=get_model_name(),
     description="A specialized agent that provides general information and answers user questions by calling the info tool.",
     tools=[info_tool],
 )
@@ -79,7 +88,7 @@ info_agent = Agent(
 
 coordinator = Agent(
     name="Coordinator",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=get_model_name(),
     instruction="""
      You are the main coordinator. Your only task is to analyze incoming user requests.
      and delegate them to the appropriate specialist agent. Do not try to answer the user directly.\n
@@ -92,11 +101,11 @@ coordinator = Agent(
 
 
 # --- Execution logic ---
-async def run_coordinator(runner: InMemoryRunner, request: str):
+async def run_coordinator(runner: InMemoryRunner, request: str) -> str:
     """Runs the coordinator agent with a given requests and delegates."""
     logger.info(f"\n---Running Coordinator with request: '{request}' ---")
 
-    final_result = ""
+    final_result: str = ""
 
     try:
         user_id = "user_123"
@@ -113,7 +122,7 @@ async def run_coordinator(runner: InMemoryRunner, request: str):
             if event.is_final_response() and event.content:
                 # Try to get text directly from event.content to avoid iterating over parts
                 if hasattr(event.content, "text") and event.content.text:
-                    final_result = event.content.text
+                    final_result = str(event.content.text)
                 elif event.content.parts:
                     # Fallback: iterated through parts and extract text (might trigger warning)
                     text_parts = [
@@ -128,11 +137,10 @@ async def run_coordinator(runner: InMemoryRunner, request: str):
 
     except Exception as e:
         logger.error(f"An error occurred while processing your request: {e}")
-        return f"An error occurred while processing your request: {e}"
-        final_result = f"Sorry, an error occurred while processing your request: {e}."
+        return f"Sorry, an error occurred while processing your request: {e}."
 
 
-async def main():
+async def main() -> None:
     """Main function to run the ADK example"""
     logger.info("---Google ADK Routing Example (ADK Auto-Flow Style)---")
     runner = InMemoryRunner(coordinator)
