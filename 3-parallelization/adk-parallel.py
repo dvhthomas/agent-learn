@@ -8,11 +8,12 @@ from common import add_verbose_argument, setup_logging
 from dotenv import load_dotenv
 from google.adk.agents import LlmAgent, ParallelAgent, SequentialAgent
 from google.adk.runners import InMemoryRunner
+from google.adk.events import Event
 from google.adk.tools import google_search
 from google.genai import types
 
 logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
-load_dotenv()
+_ = load_dotenv()
 
 # Define state keys as constants to avoid typos
 RENEWABLE_ENERGY_KEY = "renewable_energy_result"
@@ -138,7 +139,7 @@ root_agent = SequentialAgent(
 )
 
 
-def extract_content_text(event) -> str | None:
+def extract_content_text(event: Event) -> str | None:
     """Extract text content from an ADK event, handling both formats."""
     if not event.content:
         return None
@@ -160,7 +161,7 @@ async def run_pipeline(runner: InMemoryRunner) -> str | None:
     # Create session
     user_id = "user_123"
     session_id = str(uuid.uuid4())
-    await runner.session_service.create_session(
+    _ = await runner.session_service.create_session(
         app_name=runner.app_name, user_id=user_id, session_id=session_id
     )
 
