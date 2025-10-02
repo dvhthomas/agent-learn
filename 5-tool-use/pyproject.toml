@@ -23,3 +23,8 @@ select = ["I"]  # Enable import sorting rules
 [tool.ruff.lint.isort]
 # Optional: configure import sorting behavior
 known-first-party = ["common"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]

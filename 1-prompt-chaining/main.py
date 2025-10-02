@@ -1,11 +1,13 @@
 import os
+from typing import Dict, Any
+
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 
 
-def main():
+def main() -> None:
     """
     Main function that demonstrates prompt chaining using LangChain.
 
@@ -26,10 +28,14 @@ def main():
     ```
     """
     load_dotenv()
+
+    model_name = os.getenv("ANTHROPIC_MODEL")
+    if not model_name:
+        raise ValueError("ANTHROPIC_MODEL environment variable is required")
+
     llm = ChatAnthropic(
-        model_name=os.getenv("ANTHROPIC_MODEL"),
+        model=model_name,
         temperature=0.0,  # don't get creative!
-        timeout=60,
     )
 
     prompt_extract = ChatPromptTemplate.from_template(

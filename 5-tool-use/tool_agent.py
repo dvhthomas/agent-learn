@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import logging
 import os
+import sys
 
 import nest_asyncio
 from dotenv import load_dotenv
@@ -13,14 +14,16 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from common import add_verbose_argument, setup_logging
 
 load_dotenv()
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
 
 
 try:
-    llm = ChatGoogleGenerativeAI(model=os.getenv("GOOGLE_MODEL"), temperature=0)
+    llm: ChatGoogleGenerativeAI = ChatGoogleGenerativeAI(
+        model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"), temperature=0
+    )
 except Exception as e:
     logger.error(f"🔴 Error initializing language model: {e}")
-    llm = None
+    sys.exit(1)
 
 
 @tool
@@ -30,7 +33,7 @@ def search_information(query: str) -> str:
     Use this tool to find answers to phrases like 'capital of France'
     or 'weather in London?'.
     """
-    logger.notice(f"--- 🔎 Tool Called: search_information with query: '{query}' ---")
+    logger.notice(f"--- 🔎 Tool Called: search_information with query: '{query}' ---")  # type: ignore[attr-defined]
 
     # Simulate a search tool with a dictionary of predefined results.
     simulated_results = {
@@ -42,7 +45,7 @@ def search_information(query: str) -> str:
     }
 
     result = simulated_results.get(query.lower(), simulated_results["default"])
-    logger.notice(f"--- 🔎 Tool Result: '{result}' ---")
+    logger.notice(f"--- 🔎 Tool Result: '{result}' ---")  # type: ignore[attr-defined]
     return result
 
 
@@ -50,15 +53,14 @@ tools = [search_information]
 
 # --- Create a Tool-Calling Agent ---
 
-if llm:
-    agent_prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", "You are a helpful assistant."),
-            ("human", "{input}"),
-            # See README.md for more on the `agent_scratchpad`
-            ("placeholder", "{agent_scratchpad}"),
-        ]
-    )
+agent_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", "You are a helpful assistant."),
+        ("human", "{input}"),
+        # See README.md for more on the `agent_scratchpad`
+        ("placeholder", "{agent_scratchpad}"),
+    ]
+)
 
 # Create the agent, binding the LLM, tools, and prompt together
 # What it does**:
@@ -81,15 +83,15 @@ agent_executor = AgentExecutor(agent=agent, verbose=True, tools=tools)
 
 async def run_agent_with_tool(query: str) -> str:
     """Invokes the agent executor with a query and prints the final response."""
-    logger.notice(f"--- 🤖 Running Agent with Query: '{query}' ---")
+    logger.notice(f"--- 🤖 Running Agent with Query: '{query}' ---")  # type: ignore[attr-defined]
     try:
         response = await agent_executor.ainvoke({"input": query})
-        logger.notice(f"--- 🤖 Final Agent Response: '{response}' ---")
+        logger.notice(f"--- 🤖 Final Agent Response: '{response}' ---")  # type: ignore[attr-defined]
         print(response["output"])
+        return str(response["output"])
     except Exception as e:
         logger.error(f"An error occurred during agent execution: {e}")
-
-    return response
+        return ""
 
 
 async def main():

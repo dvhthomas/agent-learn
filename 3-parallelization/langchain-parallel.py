@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import logging
 import os
-from typing import Optional
+import sys
 
 from common import add_verbose_argument, setup_logging
 from dotenv import load_dotenv
@@ -17,18 +17,19 @@ from langchain_core.runnables import (
 )
 
 # Set up logger
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
 
 load_dotenv()
 
 # API key must be set in the .env file via `load_dotenv()`
 try:
-    llm: Optional[ChatAnthropic] = ChatAnthropic(
-        model=os.getenv("ANTHROPIC_MODEL"), temperature=0.7
+    llm: ChatAnthropic = ChatAnthropic(
+        model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
+        temperature=0.7,
     )
 except Exception as e:
     print(f"Error initializing language model: {e}")
-    llm = None
+    sys.exit(1)
 
 # Define independent chains
 # These three chains each represent distinct tasks that can be executed in parallel
@@ -133,7 +134,7 @@ async def run_parallel_chain(topic: str) -> None:
         # The input to `ainvoke` is the single topic string,
         # then passed to each runnable in the `map_chain`.
         response = await full_parallel_chain.ainvoke(topic)
-        logger.notice(f"---Synthesized final response--- \n\n{response}")
+        logger.notice(f"---Synthesized final response--- \n\n{response}")  # type: ignore[attr-defined]
     except Exception as e:
         logger.error(f"Error occurred during chain execution: {e}")
 

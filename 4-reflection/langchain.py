@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
 load_dotenv()
 
 
@@ -37,21 +37,21 @@ def run_reflection_loop():
     message_history = [HumanMessage(content=task_prompt)]
 
     for i in range(max_iterations):
-        logger.notice(
+        logger.notice(  # type: ignore[attr-defined]
             "\n" + "=" * 25 + f" REFLECTION LOOP: ITERATION {i + 1} " + "=" * 25
         )
 
         # --- 1. Generate / Refine stage
         # In the first iteration, it generates. In subsequent iterations, it refines.
         if i == 0:
-            logger.notice("\n>>> STAGE 1: GENERATING initial code...")
+            logger.notice("\n>>> STAGE 1: GENERATING initial code...")  # type: ignore[attr-defined]
             # The first message iso just the task prompt
             # Invoke accepts a sequence of message,string pairs
             # https://python.langchain.com/api_reference/core/language_models/langchain_core.language_models.llms.LLM.html#langchain_core.language_models.llms.LLM.invoke
             response = llm.invoke(message_history)
             current_code = response.content
         else:
-            logger.notice(">>> STAGE 2: REFINING code based on previous critique...")
+            logger.notice(">>> STAGE 2: REFINING code based on previous critique...")  # type: ignore[attr-defined]
             # The message history now contains the task, the last code, and the last critique.
             # Now we instruct the model to apply the critiques.
             message_history.append(
@@ -61,12 +61,12 @@ def run_reflection_loop():
             )
             response = llm.invoke(message_history)
             current_code = response.content
-            logger.notice(f"--- Generated Code v{i + 1}: ---\n{current_code}")
+            logger.notice(f"--- Generated Code v{i + 1}: ---\n{current_code}")  # type: ignore[attr-defined]
 
             message_history.append(response)
 
         # --- 2. REFLECT stage
-        logger.notice(">>> STAGE 2: REFLECTING on the generated code...")
+        logger.notice(">>> STAGE 2: REFLECTING on the generated code...")  # type: ignore[attr-defined]
 
         # Create a specific prompt for the reflector agent where it acts as a senior code reviewer.
         reflector_prompt = [
@@ -92,12 +92,12 @@ def run_reflection_loop():
 
         # --- 3. STOPPING CONDITION
         if "CODE_IS_PERFECT" in critique:
-            logger.notice(
+            logger.notice(  # type: ignore[attr-defined]
                 "--- Critique ---\nNo further critiques found. The code is satisfactory."
             )
             break
 
-        logger.notice(f"--- Critique ---\n{critique}")
+        logger.notice(f"--- Critique ---\n{critique}")  # type: ignore[attr-defined]
         message_history.append(
             HumanMessage(content=f"Critique of the previous code: \n{critique}")
         )
@@ -114,7 +114,7 @@ if __name__ == "__main__":
 
     setup_logging(args.verbose)
 
-    logger.notice("Running pipeline.")
+    logger.notice("Running pipeline.")  # type: ignore[attr-defined]
 
     # Check if the API key is set
     if not os.getenv("ANTHROPIC_API_KEY"):
@@ -123,5 +123,8 @@ if __name__ == "__main__":
         )
 
     # Use a lower temperature for more deterministic outputs.
-    llm = ChatAnthropic(model=os.getenv("ANTHROPIC_MODEL"), temperature=0.1)
+    llm = ChatAnthropic(
+        model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
+        temperature=0.1,
+    )
     run_reflection_loop()
