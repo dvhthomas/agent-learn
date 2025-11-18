@@ -4,7 +4,7 @@ import logging
 import os
 import uuid
 
-from common import add_verbose_argument, setup_logging
+from common import create_parser, setup_logging
 from dotenv import load_dotenv
 from google.adk.agents import LlmAgent, ParallelAgent, SequentialAgent
 from google.adk.runners import InMemoryRunner
@@ -183,19 +183,18 @@ async def run_pipeline(runner: InMemoryRunner) -> str | None:
 
 async def main():
     """Main entry point: setup logging and run the research pipeline."""
-    parser = argparse.ArgumentParser(description="Run a pipeline of research agents.")
-    add_verbose_argument(parser)
+    parser = create_parser("Run a pipeline of research agents.")
     args = parser.parse_args()
 
     setup_logging(args.verbose)
 
-    logger.notice("Running research pipeline.")
+    logger.info("Running research pipeline.")
     runner = InMemoryRunner(root_agent)
 
     final_result = await run_pipeline(runner)
 
     if final_result:
-        logger.notice(f"Final synthesized response:\n{final_result}")
+        print(f"Final synthesized response:\n{final_result}")
     else:
         logger.error("No final result received from pipeline.")
 

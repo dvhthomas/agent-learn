@@ -1,11 +1,17 @@
+import logging
 import os
-from langchain_anthropic import ChatAnthropic
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+
+from common import init
 from dotenv import load_dotenv
+from langchain_anthropic import ChatAnthropic
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+
+logger = logging.getLogger(__name__)
 
 
 def main():
+    init()  # Initialize logging with defaults
     """
     Main function that demonstrates prompt chaining using LangChain.
 

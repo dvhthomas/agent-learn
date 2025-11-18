@@ -3,6 +3,7 @@ import json
 import logging
 import os
 
+from common import create_parser, setup_logging
 from dotenv import load_dotenv
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
@@ -134,33 +135,23 @@ def main():
     logger.info("--- Running with a booking request")
     request_a = "Book me a flight to London"
     result_a = coordinator_agent.invoke({"request": request_a})
-    logger.info(f"Final Result: {result_a}")
+    print(f"Final Result: {result_a}")
 
     logger.info("--- Running with an info request")
     request_b = "What is the capital of Italy?"
     result_b = coordinator_agent.invoke({"request": request_b})
-    logger.info(f"Final Result: {result_b}")
+    print(f"Final Result: {result_b}")
 
     logger.info("--- Running with an unclear request")
     request_c = "Not a helpful request"
     result_c = coordinator_agent.invoke({"request": request_c})
-    logger.info(f"Final Result: {result_c}")
+    print(f"Final Result: {result_c}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Routing pattern demo with LangChain")
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Enable verbose logging of LLM outputs",
-    )
+    parser = create_parser("Routing pattern demo with LangChain")
     args = parser.parse_args()
 
-    # Configure logging based on verbose flag
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG, format="%(message)s")
-    else:
-        logging.basicConfig(level=logging.INFO, format="%(message)s")
+    setup_logging(args.verbose)
 
     main()

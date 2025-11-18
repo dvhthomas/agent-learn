@@ -4,6 +4,7 @@ import os
 import uuid
 from typing import Any, Dict, Optional
 
+from common import create_parser, setup_logging
 from dotenv import load_dotenv
 from google.adk.agents import Agent
 from google.adk.events import Event
@@ -139,38 +140,26 @@ async def main():
 
     # Example usage
     result_a = await run_coordinator(runner, "Book me a hotel in Paris.")
-    logger.info(f"Final Output A: {result_a}")
+    print(f"Final Output A: {result_a}")
 
     result_b = await run_coordinator(
         runner, "What is the highest mountain in the world?"
     )
-    logger.info(f"Final Output B: {result_b}")
+    print(f"Final Output B: {result_b}")
 
     result_c = await run_coordinator(runner, "Tell me a random fact.")
-    logger.info(f"Final Output C: {result_c}")
+    print(f"Final Output C: {result_c}")
 
     result_d = await run_coordinator(runner, "Find flights to Tokyo in the next month.")
-    logger.info(f"Final Output D: {result_d}")
+    print(f"Final Output D: {result_d}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Routing pattern demo with Google Agent Development Kit"
-    )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="store_true",
-        help="Enable verbose logging of LLM outputs",
-    )
+    import asyncio
+
+    parser = create_parser("Routing pattern demo with Google Agent Development Kit")
     args = parser.parse_args()
 
-    # Configure logging based on verbose flag
-    if args.verbose:
-        logging.basicConfig(level=logging.DEBUG, format="%(message)s")
-    else:
-        logging.basicConfig(level=logging.INFO, format="%(message)s")
-
-    import asyncio
+    setup_logging(args.verbose)
 
     asyncio.run(main())
