@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
 load_dotenv()
 
 
@@ -122,5 +122,8 @@ if __name__ == "__main__":
         )
 
     # Use a lower temperature for more deterministic outputs.
-    llm = ChatAnthropic(model=os.getenv("ANTHROPIC_MODEL"), temperature=0.1)
+    llm = ChatAnthropic(
+        model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
+        temperature=0.1,
+    )
     run_reflection_loop()

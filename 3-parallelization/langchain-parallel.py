@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import logging
 import os
-from typing import Optional
+import sys
 
 from common import create_parser, setup_logging
 from dotenv import load_dotenv
@@ -17,14 +17,15 @@ from langchain_core.runnables import (
 )
 
 # Set up logger
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
 
 load_dotenv()
 
 # API key must be set in the .env file via `load_dotenv()`
 try:
-    llm: Optional[ChatAnthropic] = ChatAnthropic(
-        model=os.getenv("ANTHROPIC_MODEL"), temperature=0.7
+    llm: ChatAnthropic = ChatAnthropic(
+        model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
+        temperature=0.7,
     )
 except Exception as e:
     logger.error(f"Error initializing language model: {e}")

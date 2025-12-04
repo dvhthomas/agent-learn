@@ -8,11 +8,12 @@ from common import create_parser, setup_logging
 from dotenv import load_dotenv
 from google.adk.agents import LlmAgent, ParallelAgent, SequentialAgent
 from google.adk.runners import InMemoryRunner
+from google.adk.events import Event
 from google.adk.tools import google_search
 from google.genai import types
 
-logger = logging.getLogger(__name__)
-load_dotenv()
+logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
+_ = load_dotenv()
 
 # Define state keys as constants to avoid typos
 RENEWABLE_ENERGY_KEY = "renewable_energy_result"
@@ -24,7 +25,7 @@ CARBON_CAPTURE_KEY = "carbon_capture_result"
 
 renewable_energy_agent = LlmAgent(
     name="RenewableEnergyResearcher",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     instruction="""You are an AI Research Assistant specializing in energy.
     Research the latest advancementts in 'renewable energy sources'.
     Use the Google Search tool provided. Summarize your key findings concisely
@@ -36,7 +37,7 @@ renewable_energy_agent = LlmAgent(
 
 electric_vehicle_agent = LlmAgent(
     name="EVResearcher",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     instruction="""You are an AI Research Assistant specializing in transportation.
     Research the latest developments in 'electric vehicle technology'.
     Use the Google Search tool provided. Summarize your key findings concisely
@@ -48,7 +49,7 @@ electric_vehicle_agent = LlmAgent(
 
 carbon_capture_agent = LlmAgent(
     name="CarbonCaptureResearcher",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     instruction="""You are an AI Research Assistant specializing in climate solutions.
    Research the latest advancements in 'carbon capture methods'.
    Use the Google Search tool provided. Summarize your key findings concisely
@@ -72,7 +73,7 @@ parallel_research_agent = ParallelAgent(
 
 synthesis_agent = LlmAgent(
     name="SynthesisAgent",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     instruction=f"""You are an AI Research Assistant responsible for combining research
     findings into a structured report.
 
@@ -138,7 +139,7 @@ root_agent = SequentialAgent(
 )
 
 
-def extract_content_text(event) -> str | None:
+def extract_content_text(event: Event) -> str | None:
     """Extract text content from an ADK event, handling both formats."""
     if not event.content:
         return None
@@ -160,7 +161,7 @@ async def run_pipeline(runner: InMemoryRunner) -> str | None:
     # Create session
     user_id = "user_123"
     session_id = str(uuid.uuid4())
-    await runner.session_service.create_session(
+    _ = await runner.session_service.create_session(
         app_name=runner.app_name, user_id=user_id, session_id=session_id
     )
 

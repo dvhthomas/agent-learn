@@ -10,13 +10,13 @@ from google.genai import types
 import uuid
 import asyncio
 
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
 load_dotenv()
 
 # The first agent generates an initial draft
 generator = LlmAgent(
     name="draft_writer",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     instruction="Write a comprehensive paragraph about the given subject, including relevant details, dates, and key figures where applicable.",
     description="Generates an initial draft on a given subject",
     output_key="draft_text",  # the output is saved to this state key.
@@ -25,7 +25,7 @@ generator = LlmAgent(
 # The second agent critiques the draft from the first agent.
 reviewer = LlmAgent(
     name="fact_checker",
-    model=os.getenv("GOOGLE_MODEL"),
+    model=os.getenv("GOOGLE_MODEL", "gemini-2.0-flash-exp"),
     description="Reviews a given text for factural accuracy and provides a structured critique.",
     instruction="""
     You are a meticulous fact checker.

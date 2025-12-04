@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 import os
+from typing import Any, Dict
 
 from common import create_parser, setup_logging
 from dotenv import load_dotenv
@@ -17,10 +18,10 @@ load_dotenv()
 
 
 # Set up logger
-logger = logging.getLogger(__name__)
+logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
 
 
-def log_llm_output(output, step_name):
+def log_llm_output(output: Any, step_name: str) -> None:
     """Log LLM output at DEBUG level"""
     logger.debug(f"\n=== {step_name} LLM OUTPUT ===")
     logger.debug(f"Type: {type(output)}")
@@ -52,12 +53,22 @@ def unclear_handler(request: str) -> str:
     return f"Coordinator could not delegate request: {request} Please clarify."
 
 
-try:
-    llm = ChatGoogleGenerativeAI(model=os.getenv("GOOGLE_MODEL"), temperature=0.0)
-    logger.info(f"Language model initialized: {llm.model}")
-except Exception as e:
-    logger.error(f"Error initializing language model: {e}")
-    llm = None
+def initialize_llm() -> ChatGoogleGenerativeAI | None:
+    """Initialize the Google Generative AI model."""
+    try:
+        model_name = os.getenv("GOOGLE_MODEL")
+        if not model_name:
+            raise ValueError("GOOGLE_MODEL environment variable is required")
+
+        llm = ChatGoogleGenerativeAI(model=model_name, temperature=0.0)
+        logger.info(f"Language model initialized: {llm.model}")
+        return llm
+    except Exception as e:
+        logger.error(f"Error initializing language model: {e}")
+        return None
+
+
+llm = initialize_llm()
 
 # Define Coordinator Router Chain
 
@@ -82,7 +93,7 @@ coordinator_router_prompt = ChatPromptTemplate.from_messages(
 
 if llm:
 
-    def log_and_parse(output):
+    def log_and_parse(output: Any) -> str:
         log_llm_output(output, "COORDINATOR_ROUTER")
         return StrOutputParser().invoke(output)
 
@@ -127,7 +138,7 @@ coordinator_agent = (
 )
 
 
-def main():
+def main() -> None:
     if not llm:
         logger.warning("Skipping agent execution due to LLM initialization failure.")
         return
