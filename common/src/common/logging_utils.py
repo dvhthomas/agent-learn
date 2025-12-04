@@ -1,67 +1,88 @@
 import argparse
 import logging
-from typing import Any, Protocol
+import os
+import sys
+from typing import Optional
 
+from rich.console import Console
 from rich.logging import RichHandler
 
 
-# Type protocol for Logger with notice method
-class LoggerProtocol(Protocol):
-    """Protocol for Logger with custom notice method."""
+def setup_logging(verbosity_level: int = 0):
+    """Configures logging based on verbosity level.
 
-    def notice(self, message: str, *args: Any, **kws: Any) -> None:
-        """Log a notice level message."""
-        ...
-
-# Define a custom log level for user-facing messages
-NOTICE_LEVEL_NUM = 25
-logging.addLevelName(NOTICE_LEVEL_NUM, "NOTICE")
-
-
-def notice(self: logging.Logger, message: str, *args: Any, **kws: Any) -> None:
-    if self.isEnabledFor(NOTICE_LEVEL_NUM):
-        self._log(NOTICE_LEVEL_NUM, message, args, **kws)
-
-
-logging.Logger.notice = notice  # type: ignore[attr-defined]
-
-
-def add_verbose_argument(parser: argparse.ArgumentParser):
-    """Adds a verbose argument to the argument parser."""
-    _ = parser.add_argument(
-        "-v",
-        "--verbose",
-        action="count",
-        default=0,
-        help="Increase verbosity level (-v for INFO, -vv for DEBUG).",
-    )
-
-
-def setup_logging(verbosity_level: int):
-    """Configures logging based on the verbosity level using RichHandler."""
-    if verbosity_level == 1:
-        log_level = logging.INFO
-    elif verbosity_level >= 2:
+    Args:
+        verbosity_level: 0 = WARNING (quiet), 1 = INFO, 2+ = DEBUG
+    """
+    if verbosity_level >= 2:
         log_level = logging.DEBUG
+    elif verbosity_level == 1:
+        log_level = logging.INFO
     else:
-        log_level = NOTICE_LEVEL_NUM
+        log_level = logging.WARNING
 
-    # Configure the root logger
     root_logger = logging.getLogger()
     root_logger.setLevel(log_level)
 
-    # If handlers already exist, clear them to avoid duplication
     if root_logger.hasHandlers():
         root_logger.handlers.clear()
 
-    # Add a RichHandler with a simple format
-    handler = RichHandler(rich_tracebacks=True, show_path=False)
+    # Explicitly create Console for stderr
+    console = Console(file=sys.stderr, force_terminal=True)
+    handler = RichHandler(
+        console=console, rich_tracebacks=True, show_path=False, markup=True
+    )
     formatter = logging.Formatter("%(message)s", datefmt="[%X]")
     handler.setFormatter(formatter)
     root_logger.addHandler(handler)
 
-    # Silence noisy loggers from other libraries
+    # Silence noisy libraries
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("urllib3").setLevel(logging.WARNING)
 
-    logging.info("Logging configured with level: %s", logging.getLevelName(log_level))
+
+def init(verbosity: Optional[int] = None):
+    """Initialize logging with smart defaults.
+
+    Reads verbosity from (in order of priority):
+    1. Explicit verbosity argument
+    2. LOG_LEVEL environment variable (DEBUG, INFO, WARNING, ERROR)
+    3. Default to WARNING (quiet)
+
+    This is the simplest entry point - just call once at script start.
+    """
+    if verbosity is None:
+        # Try to read from environment
+        log_level_str = os.getenv("LOG_LEVEL", "WARNING").upper()
+        level_map = {"DEBUG": 2, "INFO": 1, "WARNING": 0, "ERROR": 0}
+        verbosity = level_map.get(log_level_str, 0)
+
+    setup_logging(verbosity)
+
+
+def create_parser(description: str, **kwargs) -> argparse.ArgumentParser:
+    """Create an ArgumentParser with verbose flag pre-configured.
+
+    Returns a parser with -v/--verbose already added.
+    Call parser.parse_args() then pass args.verbose to setup_logging().
+    """
+    parser = argparse.ArgumentParser(description=description, **kwargs)
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="Increase verbosity (-v for INFO, -vv for DEBUG)",
+    )
+    return parser
+
+
+def add_verbose_argument(parser: argparse.ArgumentParser):
+    """Adds verbose argument to existing parser (legacy API)."""
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="Increase verbosity (-v for INFO, -vv for DEBUG)",
+    )

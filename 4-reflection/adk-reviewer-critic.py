@@ -1,7 +1,7 @@
 import os
 import argparse
 import logging
-from common import setup_logging, add_verbose_argument
+from common import create_parser, setup_logging
 from dotenv import load_dotenv
 
 from google.adk.agents import SequentialAgent, LlmAgent
@@ -88,23 +88,22 @@ async def run_pipeline(topic: str):
             if event.is_final_response():
                 content = extract_content_text(event)
                 if content:
-                    logger.notice(f"\n=== FINAL RESULT ===\n{content}")  # type: ignore[attr-defined]
+                    print(f"\n=== FINAL RESULT ===\n{content}")
             else:
                 # Log intermediate results
                 content = extract_content_text(event)
                 if content:
-                    logger.notice(f"\n=== INTERMEDIATE RESULT ===\n{content}")  # type: ignore[attr-defined]
+                    logger.info(f"\n=== INTERMEDIATE RESULT ===\n{content}")
     finally:
         # Clean up the runner to close HTTP connections
         if hasattr(runner, "close"):
             await runner.close()
 
-    logger.notice("=== PIPELINE COMPLETE ===")  # type: ignore[attr-defined]
+    logger.info("=== PIPELINE COMPLETE ===")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run reflection agents")
-    add_verbose_argument(parser)
+    parser = create_parser("Run reflection agents")
     parser.add_argument(
         "--topic",
         "-t",
@@ -115,7 +114,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     setup_logging(args.verbose)
 
-    logger.notice("Running write and review pipeline.")  # type: ignore[attr-defined]
+    logger.info("Running write and review pipeline.")
 
     # Check if the API key is set
     if not os.getenv("GOOGLE_API_KEY"):
@@ -124,5 +123,5 @@ if __name__ == "__main__":
         )
 
     # Run the pipeline using InMemoryRunner
-    logger.notice(f"=== STARTING PIPELINE EXECUTION with topic: '{args.topic}' ===")  # type: ignore[attr-defined]
+    logger.info(f"=== STARTING PIPELINE EXECUTION with topic: '{args.topic}' ===")
     asyncio.run(run_pipeline(args.topic))

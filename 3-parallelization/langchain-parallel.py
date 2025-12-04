@@ -4,7 +4,7 @@ import logging
 import os
 import sys
 
-from common import add_verbose_argument, setup_logging
+from common import create_parser, setup_logging
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_core.output_parsers import StrOutputParser
@@ -28,8 +28,8 @@ try:
         temperature=0.7,
     )
 except Exception as e:
-    print(f"Error initializing language model: {e}")
-    sys.exit(1)
+    logger.error(f"Error initializing language model: {e}")
+    llm = None
 
 # Define independent chains
 # These three chains each represent distinct tasks that can be executed in parallel
@@ -134,7 +134,7 @@ async def run_parallel_chain(topic: str) -> None:
         # The input to `ainvoke` is the single topic string,
         # then passed to each runnable in the `map_chain`.
         response = await full_parallel_chain.ainvoke(topic)
-        logger.notice(f"---Synthesized final response--- \n\n{response}")  # type: ignore[attr-defined]
+        print(f"---Synthesized final response--- \n\n{response}")
     except Exception as e:
         logger.error(f"Error occurred during chain execution: {e}")
 
@@ -144,8 +144,7 @@ async def main():
     Main function to run the parallel LangChain example.
     Parses command-line arguments and kicks off the processing chain.
     """
-    parser = argparse.ArgumentParser(description="Parallelization demo with LangChain")
-    add_verbose_argument(parser)
+    parser = create_parser("Parallelization demo with LangChain")
     parser.add_argument(
         "--topic",
         "-t",
@@ -155,7 +154,6 @@ async def main():
     )
     args = parser.parse_args()
 
-    # Configure logging using the shared function
     setup_logging(args.verbose)
 
     await run_parallel_chain(args.topic)
