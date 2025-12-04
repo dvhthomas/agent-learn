@@ -1,8 +1,10 @@
 import argparse
 import logging
 import os
+import sys
 from typing import Optional
 
+from rich.console import Console
 from rich.logging import RichHandler
 
 
@@ -25,7 +27,11 @@ def setup_logging(verbosity_level: int = 0):
     if root_logger.hasHandlers():
         root_logger.handlers.clear()
 
-    handler = RichHandler(rich_tracebacks=True, show_path=False, markup=True)
+    # Explicitly create Console for stderr
+    console = Console(file=sys.stderr, force_terminal=True)
+    handler = RichHandler(
+        console=console, rich_tracebacks=True, show_path=False, markup=True
+    )
     formatter = logging.Formatter("%(message)s", datefmt="[%X]")
     handler.setFormatter(formatter)
     root_logger.addHandler(handler)
