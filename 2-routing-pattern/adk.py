@@ -1,13 +1,10 @@
-import argparse
 import logging
 import os
 import uuid
-from typing import Any, Dict, Optional
 
 from common import create_parser, setup_logging
 from dotenv import load_dotenv
 from google.adk.agents import Agent
-from google.adk.events import Event
 from google.adk.runners import InMemoryRunner
 from google.adk.tools import FunctionTool
 from google.genai import types
@@ -16,7 +13,7 @@ from google.genai import types
 load_dotenv()
 
 # Set up logger
-logger: logging.Logger = logging.getLogger(__name__)  # type: ignore[attr-defined]
+logger: logging.Logger = logging.getLogger(__name__)
 
 # --- Define Tool Functions
 
